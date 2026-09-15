@@ -2,62 +2,1144 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>CHZZK Party TTS + 벌금표</title>
+
   <style>
-    html,body{margin:0;width:100%;height:100%;background:transparent!important;overflow:hidden;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}*{box-sizing:border-box}
-    .board{position:relative;width:390px;margin:8px;padding:12px 12px 10px;border-radius:12px;background:linear-gradient(180deg,rgba(12,15,18,.96),rgba(6,8,10,.95));border:1px solid rgba(255,255,255,.1);box-shadow:0 18px 42px rgba(0,0,0,.45);color:#fff;transition:opacity .25s}.board.hidden{opacity:0}.head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:0 5px 9px;border-bottom:1px solid rgba(255,255,255,.1)}.title{font-size:21px;font-weight:950;letter-spacing:-.7px}.total{font-size:19px;font-weight:950;color:#ffd84a;white-space:nowrap}.sub{font-size:9px;color:rgba(255,255,255,.45);margin-top:2px}.rows{padding-top:6px}.row{height:38px;display:grid;grid-template-columns:27px 1fr auto;align-items:center;gap:7px;padding:0 7px;border-radius:8px}.row:nth-child(odd){background:rgba(255,255,255,.025)}.rank{font-size:16px;font-weight:950;color:#ffd84a;text-align:center}.name{font-size:17px;font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.amount{font-size:17px;font-weight:950;color:#ffd84a;white-space:nowrap}.zero .rank{color:rgba(255,255,255,.25)}.zero .name{color:rgba(255,255,255,.55)}.zero .amount{color:rgba(255,255,255,.35)}.pulse{animation:pulse .95s ease-out}@keyframes pulse{0%{background:rgba(0,255,163,.42);transform:scale(1.035)}45%{background:rgba(0,255,163,.18)}100%{background:transparent;transform:scale(1)}}.delta{position:absolute;right:16px;top:57px;background:#00ffa3;color:#00170f;font-size:13px;font-weight:950;padding:6px 9px;border-radius:8px;opacity:0;pointer-events:none}.delta.show{animation:delta 1.5s ease-out}@keyframes delta{0%{opacity:0;transform:translateY(7px) scale(.92)}15%{opacity:1;transform:translateY(0) scale(1.04)}72%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}.loading{padding:22px;text-align:center;color:rgba(255,255,255,.45)}
-    .debug{display:none;position:absolute;left:8px;bottom:8px;max-width:380px;color:white;background:rgba(0,0,0,.82);font-size:11px;padding:7px 9px;border-radius:6px;white-space:pre-wrap}.debug.on{display:block}.unlock{display:none;position:absolute;right:8px;bottom:8px;border:0;border-radius:8px;background:#00ffa3;color:#00170f;font-weight:900;padding:8px 10px;cursor:pointer}.unlock.on{display:block}
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: transparent !important;
+
+      font-family:
+        Pretendard,
+        "Noto Sans KR",
+        "Malgun Gothic",
+        system-ui,
+        sans-serif;
+    }
+
+    .board {
+      position: relative;
+
+      width: 390px;
+      margin: 8px;
+      padding: 12px 12px 10px;
+
+      color: #fff;
+
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(12, 15, 18, 0.96),
+          rgba(6, 8, 10, 0.95)
+        );
+
+      box-shadow:
+        0 18px 42px rgba(0, 0, 0, 0.45);
+
+      transition: opacity 0.25s;
+    }
+
+    .board.hidden {
+      opacity: 0;
+    }
+
+    .head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+
+      gap: 10px;
+
+      padding: 0 5px 9px;
+
+      border-bottom:
+        1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .title {
+      font-size: 21px;
+      font-weight: 950;
+      letter-spacing: -0.7px;
+    }
+
+    .sub {
+      margin-top: 2px;
+
+      font-size: 9px;
+
+      color:
+        rgba(255, 255, 255, 0.45);
+    }
+
+    .total {
+      font-size: 19px;
+      font-weight: 950;
+
+      color: #ffd84a;
+
+      white-space: nowrap;
+    }
+
+    .rows {
+      padding-top: 6px;
+    }
+
+    .row {
+      display: grid;
+
+      grid-template-columns:
+        27px 1fr auto;
+
+      align-items: center;
+
+      height: 38px;
+
+      gap: 7px;
+
+      padding: 0 7px;
+
+      border-radius: 8px;
+    }
+
+    .row:nth-child(odd) {
+      background:
+        rgba(255, 255, 255, 0.025);
+    }
+
+    .rank {
+      font-size: 16px;
+      font-weight: 950;
+
+      color: #ffd84a;
+
+      text-align: center;
+    }
+
+    .name {
+      overflow: hidden;
+
+      font-size: 17px;
+      font-weight: 850;
+
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .amount {
+      font-size: 17px;
+      font-weight: 950;
+
+      color: #ffd84a;
+
+      white-space: nowrap;
+    }
+
+    .zero .rank {
+      color:
+        rgba(255, 255, 255, 0.25);
+    }
+
+    .zero .name {
+      color:
+        rgba(255, 255, 255, 0.55);
+    }
+
+    .zero .amount {
+      color:
+        rgba(255, 255, 255, 0.35);
+    }
+
+    .loading {
+      padding: 22px;
+
+      color:
+        rgba(255, 255, 255, 0.45);
+
+      text-align: center;
+    }
+
+    .pulse {
+      animation:
+        pulse 0.95s ease-out;
+    }
+
+    @keyframes pulse {
+      0% {
+        background:
+          rgba(0, 255, 163, 0.42);
+
+        transform: scale(1.035);
+      }
+
+      45% {
+        background:
+          rgba(0, 255, 163, 0.18);
+      }
+
+      100% {
+        background: transparent;
+
+        transform: scale(1);
+      }
+    }
+
+    .delta {
+      position: absolute;
+
+      top: 57px;
+      right: 16px;
+
+      padding: 6px 9px;
+
+      border-radius: 8px;
+
+      background: #00ffa3;
+      color: #00170f;
+
+      font-size: 13px;
+      font-weight: 950;
+
+      opacity: 0;
+
+      pointer-events: none;
+    }
+
+    .delta.show {
+      animation:
+        delta 1.5s ease-out;
+    }
+
+    @keyframes delta {
+      0% {
+        opacity: 0;
+        transform:
+          translateY(7px)
+          scale(0.92);
+      }
+
+      15% {
+        opacity: 1;
+        transform:
+          translateY(0)
+          scale(1.04);
+      }
+
+      72% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+        transform:
+          translateY(-8px);
+      }
+    }
+
+    .debug {
+      display: none;
+
+      position: absolute;
+
+      left: 8px;
+      bottom: 8px;
+
+      max-width: 380px;
+
+      padding: 7px 9px;
+
+      border-radius: 6px;
+
+      background:
+        rgba(0, 0, 0, 0.82);
+
+      color: white;
+
+      font-size: 11px;
+
+      white-space: pre-wrap;
+    }
+
+    .debug.on {
+      display: block;
+    }
+
+    .unlock {
+      display: none;
+
+      position: absolute;
+
+      right: 8px;
+      bottom: 8px;
+
+      padding: 8px 10px;
+
+      border: 0;
+      border-radius: 8px;
+
+      background: #00ffa3;
+      color: #00170f;
+
+      font-weight: 900;
+
+      cursor: pointer;
+    }
+
+    .unlock.on {
+      display: block;
+    }
   </style>
 </head>
+
 <body>
-  <div class="board" id="board"><div class="head"><div><div class="title" id="title">벌금표</div><div class="sub" id="sub">1회당 -</div></div><div class="total" id="total">-</div></div><div class="rows" id="rows"><div class="loading">시트 연결 중...</div></div><div class="delta" id="delta"></div></div>
-  <div class="debug" id="debug"></div>
-  <button class="unlock" id="unlock">브라우저 오디오 활성화</button>
+
+  <div
+    class="board"
+    id="board"
+  >
+
+    <div class="head">
+
+      <div>
+        <div
+          class="title"
+          id="title"
+        >
+          벌금표
+        </div>
+
+        <div
+          class="sub"
+          id="sub"
+        >
+          1회당 -
+        </div>
+      </div>
+
+      <div
+        class="total"
+        id="total"
+      >
+        -
+      </div>
+
+    </div>
+
+    <div
+      class="rows"
+      id="rows"
+    >
+      <div class="loading">
+        시트 연결 중...
+      </div>
+    </div>
+
+    <div
+      class="delta"
+      id="delta"
+    ></div>
+
+  </div>
+
+  <div
+    class="debug"
+    id="debug"
+  ></div>
+
+  <button
+    class="unlock"
+    id="unlock"
+  >
+    브라우저 오디오 활성화
+  </button>
+
+
   <script src="/socket.io/socket.io.js"></script>
+
   <script>
-    const socket=io();
-    const $=s=>document.querySelector(s);
-    const debugMode=new URLSearchParams(location.search).get('debug')==='1';
-    if(debugMode)$('#debug').classList.add('on');
-    const unlock=$('#unlock');
-    if(debugMode){unlock.classList.add('on');unlock.onclick=async()=>{try{const a=new Audio();a.muted=true;await a.play().catch(()=>{});if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();unlock.textContent='오디오 활성화됨';setTimeout(()=>unlock.classList.remove('on'),1200)}catch(e){dbg('오디오 활성화 실패\n'+(e.message||e))}}}
-    let prevFine=null,firstFine=true,audioCtx=null;
-    const ttsQueue=[];let ttsPlaying=false;
+    // =========================================================
+    // 기본 설정
+    // =========================================================
 
-    function dbg(s){if(debugMode)$('#debug').textContent=String(s)}
-    function fmt(n,u=''){n=Number(n)||0;let t;if(n>=100000000&&n%100000000===0)t=(n/100000000).toLocaleString('ko-KR')+'억';else if(n>=10000&&n%10000===0)t=(n/10000).toLocaleString('ko-KR')+'만';else t=n.toLocaleString('ko-KR');return u?`${t} ${u}`:t}
-    function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-    function beep(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const n=audioCtx.currentTime,m=audioCtx.createGain();m.gain.setValueAtTime(.0001,n);m.gain.exponentialRampToValueAtTime(.16,n+.015);m.gain.exponentialRampToValueAtTime(.0001,n+.42);m.connect(audioCtx.destination);[[820,0],[1180,.08]].forEach(([f,o])=>{const a=audioCtx.createOscillator(),g=audioCtx.createGain();a.frequency.value=f;g.gain.setValueAtTime(.0001,n+o);g.gain.exponentialRampToValueAtTime(.65,n+o+.01);g.gain.exponentialRampToValueAtTime(.0001,n+o+.26);a.connect(g);g.connect(m);a.start(n+o);a.stop(n+o+.29)})}catch(e){}}
+    const INTRO_AUDIO_URL =
+      "/tts-intro.mp3";
 
-    function renderFine(d){
-      if(!d){$('#board').classList.add('hidden');return}
-      $('#board').classList.remove('hidden');$('#title').textContent=d.title||'벌금표';$('#sub').textContent=`1회당 ${fmt(d.perCount,d.unit)}`;$('#total').textContent=fmt(d.totalAmount,d.unit);
-      const old=new Map((prevFine?.players||[]).map(p=>[p.row,p.count]));const changed=[];let inc=0;
-      d.players.forEach(p=>{const o=old.get(p.row);if(o!=null&&p.count>o){changed.push(p.row);inc+=p.count-o}});
-      const ranked=[...d.players].sort((a,b)=>b.count-a.count||a.row-b.row);
-      $('#rows').innerHTML=ranked.map((p,i)=>`<div class="row ${p.count===0?'zero':''} ${changed.includes(p.row)?'pulse':''}"><div class="rank">${i+1}</div><div class="name">${esc(p.name)}</div><div class="amount">${fmt(p.amount,d.unit)}</div></div>`).join('')||'<div class="loading">A2부터 닉네임을 입력해 주세요.</div>';
-      if(!firstFine&&inc>0){const x=$('#delta');x.textContent=`+${inc}회 · +${fmt(inc*d.perCount,d.unit)}`;x.classList.remove('show');void x.offsetWidth;x.classList.add('show');beep()}
-      firstFine=false;prevFine=d;
+    // 효과음 볼륨
+    // 0.0 ~ 1.0
+    const INTRO_VOLUME = 0.8;
+
+    // TTS 볼륨
+    const TTS_VOLUME = 1.0;
+
+
+    // =========================================================
+    // 기본 요소
+    // =========================================================
+
+    const socket = io();
+
+    const $ = (selector) =>
+      document.querySelector(selector);
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const debugMode =
+      params.get("debug") === "1";
+
+    const debugBox =
+      $("#debug");
+
+    const unlockButton =
+      $("#unlock");
+
+
+    // =========================================================
+    // 상태값
+    // =========================================================
+
+    let previousFineData = null;
+
+    let firstFineLoad = true;
+
+    let audioContext = null;
+
+    let ttsPlaying = false;
+
+    const ttsQueue = [];
+
+
+    // =========================================================
+    // 디버그
+    // =========================================================
+
+    function debug(message) {
+      if (!debugMode) {
+        return;
+      }
+
+      debugBox.textContent =
+        String(message);
     }
 
-    socket.on('fine_update',renderFine);
-    socket.on('party_tts',ev=>{ttsQueue.push(ev);dbg(`PARTY TTS\n${ev.nickname||''}\n${ev.message||''}`);playNext()});
-    socket.on('tts_error',ev=>dbg(`TTS ERROR\n${ev.message||''}`));
-    socket.on('connect',()=>dbg('서버 연결됨'));
-    socket.on('disconnect',()=>dbg('서버 연결 끊김'));
 
-    async function playNext(){
-      if(ttsPlaying||!ttsQueue.length)return;
-      ttsPlaying=true;const ev=ttsQueue.shift();
-      try{
-        const audio=new Audio(ev.audioUrl);
-        audio.preload='auto';
-        audio.volume=1;
-        await new Promise((resolve,reject)=>{audio.onended=resolve;audio.onerror=()=>reject(new Error('audio playback failed'));const p=audio.play();if(p&&p.catch)p.catch(reject)});
-      }catch(e){dbg(`재생 오류\n${e.message||e}`);if(debugMode){unlock.classList.add('on');unlock.textContent='브라우저 오디오 활성화'}}
-      finally{ttsPlaying=false;playNext()}
+    if (debugMode) {
+      debugBox.classList.add("on");
+
+      unlockButton.classList.add("on");
     }
+
+
+    // =========================================================
+    // 오디오 활성화 버튼
+    // =========================================================
+
+    unlockButton.addEventListener(
+      "click",
+      async () => {
+
+        try {
+          if (!audioContext) {
+            audioContext =
+              new (
+                window.AudioContext ||
+                window.webkitAudioContext
+              )();
+          }
+
+          await audioContext.resume();
+
+          /*
+           * 효과음 파일을 무음으로 아주 잠깐
+           * 재생 시도해서 브라우저의 오디오 권한을
+           * 활성화한다.
+           */
+          const audio =
+            new Audio(
+              INTRO_AUDIO_URL
+            );
+
+          audio.volume = 0;
+
+          try {
+            await audio.play();
+
+            audio.pause();
+
+            audio.currentTime = 0;
+          }
+          catch (_) {
+            // 무시
+          }
+
+          unlockButton.textContent =
+            "오디오 활성화됨";
+
+          setTimeout(
+            () => {
+              unlockButton
+                .classList
+                .remove("on");
+            },
+            1200
+          );
+        }
+        catch (error) {
+          debug(
+            "오디오 활성화 실패\n" +
+            (
+              error.message ||
+              error
+            )
+          );
+        }
+      }
+    );
+
+
+    // =========================================================
+    // 숫자 표시
+    // =========================================================
+
+    function formatNumber(
+      number,
+      unit = ""
+    ) {
+      number =
+        Number(number) || 0;
+
+      let text;
+
+      if (
+        number >= 100000000 &&
+        number % 100000000 === 0
+      ) {
+        text =
+          (
+            number /
+            100000000
+          ).toLocaleString(
+            "ko-KR"
+          ) +
+          "억";
+      }
+      else if (
+        number >= 10000 &&
+        number % 10000 === 0
+      ) {
+        text =
+          (
+            number /
+            10000
+          ).toLocaleString(
+            "ko-KR"
+          ) +
+          "만";
+      }
+      else {
+        text =
+          number.toLocaleString(
+            "ko-KR"
+          );
+      }
+
+      if (unit) {
+        return `${text} ${unit}`;
+      }
+
+      return text;
+    }
+
+
+    // =========================================================
+    // HTML 이스케이프
+    // =========================================================
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(
+          /[&<>'"]/g,
+          (character) => {
+
+            const entities = {
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              "'": "&#39;",
+              '"': "&quot;"
+            };
+
+            return entities[
+              character
+            ];
+          }
+        );
+    }
+
+
+    // =========================================================
+    // 벌금표 증가 효과음
+    // =========================================================
+
+    function playFineBeep() {
+      try {
+        if (!audioContext) {
+          audioContext =
+            new (
+              window.AudioContext ||
+              window.webkitAudioContext
+            )();
+        }
+
+        if (
+          audioContext.state ===
+          "suspended"
+        ) {
+          audioContext.resume();
+        }
+
+        const startTime =
+          audioContext.currentTime;
+
+        const mainGain =
+          audioContext.createGain();
+
+        mainGain.gain
+          .setValueAtTime(
+            0.0001,
+            startTime
+          );
+
+        mainGain.gain
+          .exponentialRampToValueAtTime(
+            0.16,
+            startTime + 0.015
+          );
+
+        mainGain.gain
+          .exponentialRampToValueAtTime(
+            0.0001,
+            startTime + 0.42
+          );
+
+        mainGain.connect(
+          audioContext.destination
+        );
+
+        const sounds = [
+          [820, 0],
+          [1180, 0.08]
+        ];
+
+        sounds.forEach(
+          ([frequency, offset]) => {
+
+            const oscillator =
+              audioContext
+                .createOscillator();
+
+            const gain =
+              audioContext
+                .createGain();
+
+            oscillator.frequency.value =
+              frequency;
+
+            gain.gain
+              .setValueAtTime(
+                0.0001,
+                startTime +
+                offset
+              );
+
+            gain.gain
+              .exponentialRampToValueAtTime(
+                0.65,
+                startTime +
+                offset +
+                0.01
+              );
+
+            gain.gain
+              .exponentialRampToValueAtTime(
+                0.0001,
+                startTime +
+                offset +
+                0.26
+              );
+
+            oscillator.connect(
+              gain
+            );
+
+            gain.connect(
+              mainGain
+            );
+
+            oscillator.start(
+              startTime +
+              offset
+            );
+
+            oscillator.stop(
+              startTime +
+              offset +
+              0.29
+            );
+          }
+        );
+      }
+      catch (_) {
+        // 벌금표 효과음 실패는 무시
+      }
+    }
+
+
+    // =========================================================
+    // 벌금표 렌더링
+    // =========================================================
+
+    function renderFine(data) {
+
+      const board =
+        $("#board");
+
+      if (!data) {
+        board.classList
+          .add("hidden");
+
+        return;
+      }
+
+      board.classList
+        .remove("hidden");
+
+      $("#title").textContent =
+        data.title ||
+        "벌금표";
+
+      $("#sub").textContent =
+        `1회당 ${formatNumber(
+          data.perCount,
+          data.unit
+        )}`;
+
+      $("#total").textContent =
+        formatNumber(
+          data.totalAmount,
+          data.unit
+        );
+
+
+      const oldCounts =
+        new Map(
+          (
+            previousFineData
+              ?.players ||
+            []
+          )
+          .map(
+            player => [
+              player.row,
+              player.count
+            ]
+          )
+        );
+
+
+      const changedRows = [];
+
+      let increasedCount = 0;
+
+
+      data.players.forEach(
+        player => {
+
+          const oldCount =
+            oldCounts.get(
+              player.row
+            );
+
+          if (
+            oldCount != null &&
+            player.count >
+            oldCount
+          ) {
+            changedRows.push(
+              player.row
+            );
+
+            increasedCount +=
+              player.count -
+              oldCount;
+          }
+        }
+      );
+
+
+      const rankedPlayers =
+        [
+          ...data.players
+        ]
+        .sort(
+          (a, b) =>
+            b.count -
+            a.count ||
+            a.row -
+            b.row
+        );
+
+
+      if (
+        rankedPlayers.length
+      ) {
+        $("#rows").innerHTML =
+          rankedPlayers
+            .map(
+              (
+                player,
+                index
+              ) => {
+
+                const isZero =
+                  player.count === 0;
+
+                const changed =
+                  changedRows.includes(
+                    player.row
+                  );
+
+                return `
+                  <div class="
+                    row
+                    ${isZero
+                      ? "zero"
+                      : ""}
+                    ${changed
+                      ? "pulse"
+                      : ""}
+                  ">
+                    <div class="rank">
+                      ${index + 1}
+                    </div>
+
+                    <div class="name">
+                      ${escapeHtml(
+                        player.name
+                      )}
+                    </div>
+
+                    <div class="amount">
+                      ${formatNumber(
+                        player.amount,
+                        data.unit
+                      )}
+                    </div>
+                  </div>
+                `;
+              }
+            )
+            .join("");
+      }
+      else {
+        $("#rows").innerHTML =
+          `
+            <div class="loading">
+              A2부터 닉네임을 입력해 주세요.
+            </div>
+          `;
+      }
+
+
+      if (
+        !firstFineLoad &&
+        increasedCount > 0
+      ) {
+        const delta =
+          $("#delta");
+
+        delta.textContent =
+          `+${increasedCount}회 · +${formatNumber(
+            increasedCount *
+            data.perCount,
+            data.unit
+          )}`;
+
+        delta.classList
+          .remove("show");
+
+        void delta.offsetWidth;
+
+        delta.classList
+          .add("show");
+
+        playFineBeep();
+      }
+
+
+      firstFineLoad = false;
+
+      previousFineData =
+        data;
+    }
+
+
+    // =========================================================
+    // MP3 재생 공통 함수
+    // =========================================================
+
+    function playAudio(
+      url,
+      volume = 1
+    ) {
+      return new Promise(
+        (
+          resolve,
+          reject
+        ) => {
+
+          const audio =
+            new Audio(url);
+
+          audio.preload =
+            "auto";
+
+          audio.volume =
+            volume;
+
+          audio.onended =
+            () => {
+              resolve();
+            };
+
+          audio.onerror =
+            () => {
+              reject(
+                new Error(
+                  "오디오 재생 실패: " +
+                  url
+                )
+              );
+            };
+
+
+          const promise =
+            audio.play();
+
+          if (
+            promise &&
+            promise.catch
+          ) {
+            promise.catch(
+              reject
+            );
+          }
+        }
+      );
+    }
+
+
+    // =========================================================
+    // TTS 큐
+    //
+    // 순서:
+    //
+    // 파티후원
+    // ↓
+    // tts-intro.mp3
+    // ↓
+    // Typecast TTS
+    // ↓
+    // 다음 후원
+    // =========================================================
+
+    async function playNext() {
+
+      if (
+        ttsPlaying ||
+        ttsQueue.length === 0
+      ) {
+        return;
+      }
+
+
+      ttsPlaying = true;
+
+      const event =
+        ttsQueue.shift();
+
+
+      try {
+
+        // ---------------------------------
+        // 1. 인트로 효과음
+        // ---------------------------------
+
+        try {
+          await playAudio(
+            INTRO_AUDIO_URL,
+            INTRO_VOLUME
+          );
+        }
+        catch (introError) {
+          /*
+           * 인트로 MP3에 문제가 있어도
+           * TTS 자체는 재생하도록 진행한다.
+           */
+
+          debug(
+            "인트로 효과음 오류\n" +
+            (
+              introError.message ||
+              introError
+            )
+          );
+        }
+
+
+        // ---------------------------------
+        // 2. Typecast TTS
+        // ---------------------------------
+
+        await playAudio(
+          event.audioUrl,
+          TTS_VOLUME
+        );
+
+      }
+      catch (error) {
+
+        debug(
+          "TTS 재생 오류\n" +
+          (
+            error.message ||
+            error
+          )
+        );
+
+
+        if (debugMode) {
+          unlockButton
+            .classList
+            .add("on");
+
+          unlockButton.textContent =
+            "브라우저 오디오 활성화";
+        }
+
+      }
+      finally {
+
+        ttsPlaying = false;
+
+        // 다음 후원이 대기 중이면 계속 재생
+        playNext();
+
+      }
+    }
+
+
+    // =========================================================
+    // Socket.IO
+    // =========================================================
+
+    socket.on(
+      "fine_update",
+      data => {
+        renderFine(data);
+      }
+    );
+
+
+    socket.on(
+      "party_tts",
+      event => {
+
+        ttsQueue.push(
+          event
+        );
+
+        debug(
+          "PARTY TTS\n" +
+          (
+            event.nickname ||
+            ""
+          ) +
+          "\n" +
+          (
+            event.message ||
+            ""
+          )
+        );
+
+        playNext();
+      }
+    );
+
+
+    socket.on(
+      "tts_error",
+      event => {
+        debug(
+          "TTS ERROR\n" +
+          (
+            event.message ||
+            ""
+          )
+        );
+      }
+    );
+
+
+    socket.on(
+      "connect",
+      () => {
+        debug(
+          "서버 연결됨"
+        );
+      }
+    );
+
+
+    socket.on(
+      "disconnect",
+      () => {
+        debug(
+          "서버 연결 끊김"
+        );
+      }
+    );
+
+
+    // =========================================================
+    // 인트로 MP3 미리 로딩
+    // =========================================================
+
+    const introPreload =
+      new Audio(
+        INTRO_AUDIO_URL
+      );
+
+    introPreload.preload =
+      "auto";
+
+    introPreload.load();
+
   </script>
+
 </body>
 </html>
