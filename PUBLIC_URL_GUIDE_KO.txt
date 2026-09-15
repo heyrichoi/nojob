@@ -1,0 +1,17 @@
+[공개 OBS 링크 만들기]
+
+localhost:3000 주소는 서버를 실행한 본인 PC에서만 열립니다.
+스트리머에게 공유하려면 공개 HTTPS 주소가 필요합니다.
+
+빠른 테스트(내 PC를 서버로 사용): Cloudflare Quick Tunnel
+1) cloudflared 설치: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+2) 이 프로젝트에서 start_windows.bat 실행
+3) 새 터미널에서 아래 실행
+   cloudflared tunnel --url http://localhost:3000
+4) 터미널에 https://xxxxx.trycloudflare.com 주소가 표시됩니다.
+5) 관리 페이지: https://xxxxx.trycloudflare.com/control
+6) 모든 스트리머 OBS: https://xxxxx.trycloudflare.com/overlay
+
+주의: Quick Tunnel 주소는 재실행 시 바뀔 수 있습니다.
+실전용 고정 주소는 Render/Railway/VPS 또는 Cloudflare Named Tunnel + 도메인을 권장합니다.
+서버 PC와 cloudflared는 방송 중 계속 켜져 있어야 합니다.
