@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CHZZK Party TTS + 벌금표</title>
+  <style>
+    html,body{margin:0;width:100%;height:100%;background:transparent!important;overflow:hidden;font-family:Pretendard,"Noto Sans KR","Malgun Gothic",system-ui,sans-serif}*{box-sizing:border-box}
+    .board{position:relative;width:390px;margin:8px;padding:12px 12px 10px;border-radius:12px;background:linear-gradient(180deg,rgba(12,15,18,.96),rgba(6,8,10,.95));border:1px solid rgba(255,255,255,.1);box-shadow:0 18px 42px rgba(0,0,0,.45);color:#fff;transition:opacity .25s}.board.hidden{opacity:0}.head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:0 5px 9px;border-bottom:1px solid rgba(255,255,255,.1)}.title{font-size:21px;font-weight:950;letter-spacing:-.7px}.total{font-size:19px;font-weight:950;color:#ffd84a;white-space:nowrap}.sub{font-size:9px;color:rgba(255,255,255,.45);margin-top:2px}.rows{padding-top:6px}.row{height:38px;display:grid;grid-template-columns:27px 1fr auto;align-items:center;gap:7px;padding:0 7px;border-radius:8px}.row:nth-child(odd){background:rgba(255,255,255,.025)}.rank{font-size:16px;font-weight:950;color:#ffd84a;text-align:center}.name{font-size:17px;font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.amount{font-size:17px;font-weight:950;color:#ffd84a;white-space:nowrap}.zero .rank{color:rgba(255,255,255,.25)}.zero .name{color:rgba(255,255,255,.55)}.zero .amount{color:rgba(255,255,255,.35)}.pulse{animation:pulse .95s ease-out}@keyframes pulse{0%{background:rgba(0,255,163,.42);transform:scale(1.035)}45%{background:rgba(0,255,163,.18)}100%{background:transparent;transform:scale(1)}}.delta{position:absolute;right:16px;top:57px;background:#00ffa3;color:#00170f;font-size:13px;font-weight:950;padding:6px 9px;border-radius:8px;opacity:0;pointer-events:none}.delta.show{animation:delta 1.5s ease-out}@keyframes delta{0%{opacity:0;transform:translateY(7px) scale(.92)}15%{opacity:1;transform:translateY(0) scale(1.04)}72%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}.loading{padding:22px;text-align:center;color:rgba(255,255,255,.45)}
+    .debug{display:none;position:absolute;left:8px;bottom:8px;max-width:380px;color:white;background:rgba(0,0,0,.82);font-size:11px;padding:7px 9px;border-radius:6px;white-space:pre-wrap}.debug.on{display:block}.unlock{display:none;position:absolute;right:8px;bottom:8px;border:0;border-radius:8px;background:#00ffa3;color:#00170f;font-weight:900;padding:8px 10px;cursor:pointer}.unlock.on{display:block}
+  </style>
+</head>
+<body>
+  <div class="board" id="board"><div class="head"><div><div class="title" id="title">벌금표</div><div class="sub" id="sub">1회당 -</div></div><div class="total" id="total">-</div></div><div class="rows" id="rows"><div class="loading">시트 연결 중...</div></div><div class="delta" id="delta"></div></div>
+  <div class="debug" id="debug"></div>
+  <button class="unlock" id="unlock">브라우저 오디오 활성화</button>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket=io();
+    const $=s=>document.querySelector(s);
+    const debugMode=new URLSearchParams(location.search).get('debug')==='1';
+    if(debugMode)$('#debug').classList.add('on');
+    const unlock=$('#unlock');
+    if(debugMode){unlock.classList.add('on');unlock.onclick=async()=>{try{const a=new Audio();a.muted=true;await a.play().catch(()=>{});if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();unlock.textContent='오디오 활성화됨';setTimeout(()=>unlock.classList.remove('on'),1200)}catch(e){dbg('오디오 활성화 실패\n'+(e.message||e))}}}
+    let prevFine=null,firstFine=true,audioCtx=null;
+    const ttsQueue=[];let ttsPlaying=false;
+
+    function dbg(s){if(debugMode)$('#debug').textContent=String(s)}
+    function fmt(n,u=''){n=Number(n)||0;let t;if(n>=100000000&&n%100000000===0)t=(n/100000000).toLocaleString('ko-KR')+'억';else if(n>=10000&&n%10000===0)t=(n/10000).toLocaleString('ko-KR')+'만';else t=n.toLocaleString('ko-KR');return u?`${t} ${u}`:t}
+    function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+    function beep(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const n=audioCtx.currentTime,m=audioCtx.createGain();m.gain.setValueAtTime(.0001,n);m.gain.exponentialRampToValueAtTime(.16,n+.015);m.gain.exponentialRampToValueAtTime(.0001,n+.42);m.connect(audioCtx.destination);[[820,0],[1180,.08]].forEach(([f,o])=>{const a=audioCtx.createOscillator(),g=audioCtx.createGain();a.frequency.value=f;g.gain.setValueAtTime(.0001,n+o);g.gain.exponentialRampToValueAtTime(.65,n+o+.01);g.gain.exponentialRampToValueAtTime(.0001,n+o+.26);a.connect(g);g.connect(m);a.start(n+o);a.stop(n+o+.29)})}catch(e){}}
+
+    function renderFine(d){
+      if(!d){$('#board').classList.add('hidden');return}
+      $('#board').classList.remove('hidden');$('#title').textContent=d.title||'벌금표';$('#sub').textContent=`1회당 ${fmt(d.perCount,d.unit)}`;$('#total').textContent=fmt(d.totalAmount,d.unit);
+      const old=new Map((prevFine?.players||[]).map(p=>[p.row,p.count]));const changed=[];let inc=0;
+      d.players.forEach(p=>{const o=old.get(p.row);if(o!=null&&p.count>o){changed.push(p.row);inc+=p.count-o}});
+      const ranked=[...d.players].sort((a,b)=>b.count-a.count||a.row-b.row);
+      $('#rows').innerHTML=ranked.map((p,i)=>`<div class="row ${p.count===0?'zero':''} ${changed.includes(p.row)?'pulse':''}"><div class="rank">${i+1}</div><div class="name">${esc(p.name)}</div><div class="amount">${fmt(p.amount,d.unit)}</div></div>`).join('')||'<div class="loading">A2부터 닉네임을 입력해 주세요.</div>';
+      if(!firstFine&&inc>0){const x=$('#delta');x.textContent=`+${inc}회 · +${fmt(inc*d.perCount,d.unit)}`;x.classList.remove('show');void x.offsetWidth;x.classList.add('show');beep()}
+      firstFine=false;prevFine=d;
+    }
+
+    socket.on('fine_update',renderFine);
+    socket.on('party_tts',ev=>{ttsQueue.push(ev);dbg(`PARTY TTS\n${ev.nickname||''}\n${ev.message||''}`);playNext()});
+    socket.on('tts_error',ev=>dbg(`TTS ERROR\n${ev.message||''}`));
+    socket.on('connect',()=>dbg('서버 연결됨'));
+    socket.on('disconnect',()=>dbg('서버 연결 끊김'));
+
+    async function playNext(){
+      if(ttsPlaying||!ttsQueue.length)return;
+      ttsPlaying=true;const ev=ttsQueue.shift();
+      try{
+        const audio=new Audio(ev.audioUrl);
+        audio.preload='auto';
+        audio.volume=1;
+        await new Promise((resolve,reject)=>{audio.onended=resolve;audio.onerror=()=>reject(new Error('audio playback failed'));const p=audio.play();if(p&&p.catch)p.catch(reject)});
+      }catch(e){dbg(`재생 오류\n${e.message||e}`);if(debugMode){unlock.classList.add('on');unlock.textContent='브라우저 오디오 활성화'}}
+      finally{ttsPlaying=false;playNext()}
+    }
+  </script>
+</body>
+</html>
